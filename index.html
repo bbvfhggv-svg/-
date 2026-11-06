@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8fafc" />
+    <title>Prompt-to-UI Blueprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root { color-scheme: light; }
+      body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .component-card { transition: box-shadow .15s ease, transform .15s ease; }
+      .component-card[draggable="true"] { cursor: grab; }
+      .component-card.is-dragging { opacity: .45; transform: scale(.98); }
+      .drop-indicator { border-top: 3px solid #6366f1; }
+      .code-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+      .code-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+      textarea { resize: vertical; }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
+        <a href="#" class="flex items-center gap-3" aria-label="Prompt-to-UI Blueprint home">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-600 text-lg font-black text-white">P</span>
+          <span>
+            <span class="block text-sm font-bold tracking-tight sm:text-base">Prompt-to-UI Blueprint</span>
+            <span class="block text-xs text-slate-500">حوّل الوصف إلى مخطط واجهة</span>
+          </span>
+        </a>
+        <span class="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 sm:inline-flex">المرحلة الأولى · Vanilla JS</span>
+      </div>
+    </header>
+
+    <main class="mx-auto grid max-w-[1600px] gap-6 px-5 py-6 sm:px-8 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)] lg:py-8">
+      <section class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="prompt-title">
+        <div class="mb-5">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-indigo-600">ابدأ بوصفك</p>
+          <h1 id="prompt-title" class="text-xl font-bold tracking-tight">ماذا تريد أن تبني؟</h1>
+          <p class="mt-2 text-sm leading-6 text-slate-500">اكتب المكونات التي تحتاجها بالعربية أو الإنجليزية، وسنرتبها لك في مخطط قابل للتعديل.</p>
+        </div>
+        <label for="prompt-input" class="mb-2 block text-sm font-semibold text-slate-700">وصف الواجهة</label>
+        <textarea id="prompt-input" rows="9" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" placeholder="مثال: صمم صفحة إدارة فيها نافبار، بطاقة إحصائيات، نموذج بحث، جدول مستخدمين وزر إضافة"></textarea>
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <button id="generate-button" type="button" class="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200">✦ توليد المخطط</button>
+          <button id="clear-button" type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">مسح الكل</button>
+        </div>
+        <div class="mt-6 rounded-xl bg-indigo-50 p-4">
+          <p class="text-xs font-bold text-indigo-900">كلمات مفتاحية مدعومة</p>
+          <p class="mt-2 text-xs leading-5 text-indigo-800/80">زر / Button · نموذج / Form · بطاقة / Card · جدول / Table · مدخل / Input · نافبار / Navbar</p>
+        </div>
+        <p id="status-message" class="mt-4 min-h-5 text-sm text-slate-500" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-label="مساحة العمل">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6">
+          <div>
+            <h2 class="font-bold">مساحة العمل</h2>
+            <p class="mt-1 text-xs text-slate-500">اسحب العناصر لإعادة ترتيبها، أو عدّل اسمها مباشرة.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="copy-button" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40" disabled>نسخ الكود</button>
+            <button id="download-button" type="button" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40" disabled>تنزيل HTML</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 border-b border-slate-200 px-4 pt-3 sm:px-6" role="tablist" aria-label="عرض مساحة العمل">
+          <button id="canvas-tab" class="rounded-t-lg border-b-2 border-indigo-600 px-4 py-2.5 text-sm font-semibold text-indigo-700" type="button" role="tab" aria-selected="true" aria-controls="canvas-panel">المخطط</button>
+          <button id="code-tab" class="rounded-t-lg border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800" type="button" role="tab" aria-selected="false" aria-controls="code-panel">معاينة الكود</button>
+        </div>
+        <div id="canvas-panel" role="tabpanel" aria-labelledby="canvas-tab" class="p-4 sm:p-6">
+          <div class="mb-4 flex items-center justify-between text-xs text-slate-500">
+            <span>Canvas · ترتيب عمودي</span><span id="component-count">٠ عناصر</span>
+          </div>
+          <div id="wireframe-canvas" class="min-h-[420px] space-y-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:p-6" aria-label="لوحة المخطط"></div>
+        </div>
+        <div id="code-panel" role="tabpanel" aria-labelledby="code-tab" class="hidden p-4 sm:p-6">
+          <div class="mb-3 flex items-center justify-between"><span class="text-xs font-medium text-slate-500">HTML + Tailwind CSS</span><span class="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500">HTML</span></div>
+          <pre class="code-scroll min-h-[420px] overflow-auto rounded-xl bg-slate-950 p-5 text-left text-xs leading-6 text-slate-200" dir="ltr"><code id="generated-code"></code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mx-auto max-w-[1600px] px-5 pb-8 text-center text-xs text-slate-400 sm:px-8">بُني للتجربة السريعة وتوليد نقطة بداية قابلة للتخصيص.</footer>
+    <script type="module" src="./assets/js/app.js"></script>
+  </body>
+</html>
